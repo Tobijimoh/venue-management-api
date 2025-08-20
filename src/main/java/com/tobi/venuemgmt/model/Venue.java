@@ -1,6 +1,8 @@
 package com.tobi.venuemgmt.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import lombok.Getter;
@@ -15,6 +17,10 @@ public class Venue extends BaseEntity {
     private String name;
     private String location;
     private String type;
+
+    @Enumerated(EnumType.STRING)
+    private VenueStatus status;
+
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Instrument> Instruments;
 
