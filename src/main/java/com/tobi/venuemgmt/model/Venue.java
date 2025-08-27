@@ -22,6 +22,6 @@ public class Venue extends BaseEntity {
     private VenueStatus status;
 
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Instrument> Instruments;
+    private List<Instrument> instruments;
 
 }
