@@ -2,12 +2,12 @@ package com.tobi.venuemgmt.service;
 
 import com.tobi.venuemgmt.model.Venue;
 import com.tobi.venuemgmt.model.VenueStatus;
+import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tobi.venuemgmt.repository.VenueRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class VenueService {
@@ -23,8 +23,9 @@ public class VenueService {
         return venueRepository.findAll();
     }
 
-    public Optional<Venue> findVenueById(Long id) {
-        return venueRepository.findById(id);
+    public Venue findVenueById(Long id) {
+        return venueRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venue with ID " + id + " not found."));
     }
 
     public Venue saveVenue(Venue venue) {
@@ -38,11 +39,11 @@ public class VenueService {
         venueRepository.deleteById(id);
     }
 
-    public Optional<Venue> updateVenueStatus(Long id, VenueStatus newStatus) {
-        return venueRepository.findById(id).map(venue -> {
-            venue.setStatus(newStatus);
-            return venueRepository.save(venue);
-        });
+    public Venue updateVenueStatus(Long id, VenueStatus newStatus) {
+        Venue venue = findVenueById(id);
+        venue.setStatus(newStatus);
+        return venueRepository.save(venue);
+        
     }
 
     public List<Venue> findVenuesByType(String type) {
@@ -50,6 +51,6 @@ public class VenueService {
     }
 
     public List<Venue> findVenuesByName(String name) {
-        return venueRepository.findfindByNameContainingIgnoreCase(name);
+        return venueRepository.findByNameContainingIgnoreCase(name);
     }
 }

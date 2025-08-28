@@ -33,9 +33,8 @@ public class VenueController {
     // GET a single venue by ID
     @GetMapping("/{id}")
     public ResponseEntity<Venue> getVenueById(@PathVariable Long id) {
-        return venueService.findVenueById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Venue venue = venueService.findVenueById(id);
+        return ResponseEntity.ok(venue);
     }
 
     // GET venues by type
@@ -54,9 +53,8 @@ public class VenueController {
     // PUT to update a venue's status
     @PutMapping("/{id}/status")
     public ResponseEntity<Venue> updateVenueStatus(@PathVariable Long id, @RequestBody VenueStatus status) {
-        return venueService.updateVenueStatus(id, status)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Venue updatedVenue = venueService.updateVenueStatus(id, status);
+        return ResponseEntity.ok(updatedVenue);
     }
 
     // DELETE a venue by ID
