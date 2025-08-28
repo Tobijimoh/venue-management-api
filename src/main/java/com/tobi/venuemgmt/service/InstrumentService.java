@@ -4,6 +4,7 @@ import com.tobi.venuemgmt.model.Instrument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tobi.venuemgmt.repository.InstrumentRepository;
+import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,15 +23,16 @@ public class InstrumentService {
         return instrumentRepository.findAll();
     }
 
-    public Optional<Instrument> findInstrumentById(Long id) {
-        return instrumentRepository.findById(id);
+    public Instrument findInstrumentById(Long id) {
+        return instrumentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Instrument with ID " + id + " not found."));
     }
 
     public Instrument saveInstrument(Instrument instrument) {
         return instrumentRepository.save(instrument);
     }
 
-    public void deleteInstryment(Long id) {
+    public void deleteInstrument(Long id) {
         instrumentRepository.deleteById(id);
     }
 

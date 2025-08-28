@@ -13,11 +13,11 @@ public interface VenueRepository extends JpaRepository<Venue, Long> {
 
     List<Venue> findByType(String type);
     
-    List<Venue> ffindByStatus(String status);
+    List<Venue> findByStatus(String status);
 
-    List<Venue> findfindByNameContainingIgnoreCase (String name);
+    List<Venue> findByNameContainingIgnoreCase (String name);
 
-    List<Venue> findfindByLocationContainingIgnoreCase(String location);
+    List<Venue> findByLocationContainingIgnoreCase(String location);
 
     @Query("SELECT v FROM Venue v WHERE v.name LIKE %:name%")
     List<Venue> findByNamePartialMatch(@Param("name") String name);
