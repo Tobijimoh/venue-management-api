@@ -46,7 +46,7 @@ public class VenueService {
     }
 
     public List<Venue> findVenuesByType(String type) {
-        return venueRepository.findByType(type);
+        return venueRepository.findByTypeIgnoreCase(type);
     }
 
     public List<Venue> findVenuesByName(String name) {
