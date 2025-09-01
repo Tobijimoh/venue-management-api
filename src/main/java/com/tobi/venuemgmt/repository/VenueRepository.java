@@ -11,11 +11,11 @@ import java.util.List;
 @Repository
 public interface VenueRepository extends JpaRepository<Venue, Long> {
 
-    List<Venue> findByType(String type);
+    List<Venue> findByTypeIgnoreCase(String type);
     
     List<Venue> findByStatus(String status);
 
-    List<Venue> findByNameContainingIgnoreCase (String name);
+    List<Venue> findByNameContainingIgnoreCase(String name);
 
     List<Venue> findByLocationContainingIgnoreCase(String location);
 
