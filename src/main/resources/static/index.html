@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Venue Management Dashboard</title>
+    <style>
+        :root {
+            /* UBS Inspired Color Palette */
+            --primary-bg: #1C1C1C; /* Near Black */
+            --secondary-bg: #2C2C2C; /* Dark Gray */
+            --sidebar-bg: #000000;   /* Black */
+            --accent-color: #D90000; /* UBS Red */
+            --text-color: #FFFFFF;   /* White */
+            --border-color: #444444; /* Medium Gray for borders */
+            --success-color: #2ECC71;
+            --warning-color: #f39c12;
+            --suspended-color: #c0392b;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .sidebar h1 {
+            color: var(--accent-color);
+            margin: 0 0 40px 0;
+            font-size: 1.5em;
+            text-align: center;
+            font-weight: bold;
+        }
+        .sidebar nav a {
+            cursor: pointer;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .sidebar nav a.active, .sidebar nav a:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            background-color: #B80000; /* Darker Red on hover */
+        }
+        .table-container {
+            background-color: var(--secondary-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: #333333; /* Slightly lighter than secondary bg for header */
+            font-weight: bold;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background-color: #383838;
+        }
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+            min-width: 80px;
+            font-size: 0.9em;
+        }
+        .status.open, .status.active { background-color: var(--success-color); }
+        .status.closed { background-color: var(--accent-color); } /* Using accent for closed */
+        .status.suspended { background-color: var(--suspended-color); }
+        .status.pending_onboarding { background-color: var(--warning-color); }
+
+        .action-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: var(--border-color);
+            color: white;
+        }
+
+        .notice-box {
+            background-color: #2C2C2C;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: var(--secondary-bg); padding: 30px; border-radius: 10px; width: 90%; max-width: 500px;
+            border-top: 5px solid var(--accent-color); animation: slideIn 0.3s;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; font-size: 1.5em; }
+        .close-btn { font-size: 2em; cursor: pointer; color: var(--text-color); transition: color 0.3s; }
+        .close-btn:hover { color: var(--accent-color); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px; box-sizing: border-box; background-color: var(--primary-bg);
+            border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; font-size: 1em; resize: vertical;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; box-shadow: 0 0 10px rgba(217, 0, 0, 0.5); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h1>VenueControl</h1>
+        <nav>
+            <a data-page="venues" class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Venues</span>
+            </a>
+            <a data-page="instruments">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                <span>Instruments</span>
+            </a>
+             <a data-page="participants">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Participants</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <!-- Venues Page -->
+        <div id="venues-content" class="page-content active">
+            <div class="header">
+                <h2>Manage Venues</h2>
+                <button class="btn" id="addVenueBtn">Add New Venue</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Name</th><th>Location</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="venueTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Instruments Page -->
+        <div id="instruments-content" class="page-content">
+             <div class="header">
+                <h2>Manage Instruments</h2>
+                <button class="btn" id="addInstrumentBtn">Add New Instrument</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Symbol</th><th>Name</th><th>Venue</th><th>Description</th><th>Actions</th></tr></thead>
+                    <tbody id="instrumentTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Participants Page -->
+        <div id="participants-content" class="page-content">
+            <div class="header">
+                <h2>Manage Participants</h2>
+                <button class="btn" disabled>Add New Participant</button>
+            </div>
+            <div class="notice-box">
+                <strong>Future Enhancement:</strong> The functionality for this section is planned for a future release. This demonstrates the next logical step in managing the trading venue.
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Participant ID</th>
+                            <th>Firm Name</th>
+                            <th>Status</th>
+                            <th>Last Activity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantTableBody">
+                        <!-- Mock-up data to show the vision -->
+                        <tr>
+                            <td>P5821</td>
+                            <td>Quantum Hedge Fund</td>
+                            <td><span class="status active">ACTIVE</span></td>
+                            <td>2025-09-01 13:50:11</td>
+                            <td>
+                                <button class="action-btn" disabled>View Traders</button>
+                                <button class="action-btn" disabled>Set Risk Limits</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>P9473</td>
+                            <td>Alpha Trading Group</td>
+                            <td><span class="status suspended">SUSPENDED</span></td>
+                            <td>2025-08-28 10:21:45</td>
+                            <td>
+                                <button class="action-btn" disabled>View Traders</button>
+                                <button class="action-btn" disabled>Set Risk Limits</button>
+                            </td>
+                        </tr>
+                         <tr>
+                            <td>P1102</td>
+                            <td>Momentum Capital</td>
+                            <td><span class="status pending_onboarding">PENDING</span></td>
+                            <td>N/A</td>
+                            <td>
+                                <button class="action-btn" disabled>View Traders</button>
+                                <button class="action-btn" disabled>Set Risk Limits</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Add/Edit Venue Modal -->
+    <div id="venueModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="venueModalTitle">Add New Venue</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <form id="venueForm">
+                <input type="hidden" id="venueId">
+                <div class="form-group">
+                    <label for="venueName">Venue Name</label>
+                    <input type="text" id="venueName" required>
+                </div>
+                <div class="form-group">
+                    <label for="venueLocation">Location</label>
+                    <input type="text" id="venueLocation" required>
+                </div>
+                <div class="form-group">
+                    <label for="venueType">Type</label>
+                    <input type="text" id="venueType" required>
+                </div>
+                <div class="form-group">
+                    <label for="venueStatus">Initial Status</label>
+                    <select id="venueStatus">
+                        <option value="OPEN">OPEN</option>
+                        <option value="CLOSED">CLOSED</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Save Venue</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Instrument Modal -->
+     <div id="instrumentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="instrumentModalTitle">Add New Instrument</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <form id="instrumentForm">
+                <input type="hidden" id="instrumentId">
+                <div class="form-group">
+                    <label for="instrumentSymbol">Symbol</label>
+                    <input type="text" id="instrumentSymbol" required placeholder="e.g., AAPL, BTC/USD">
+                </div>
+                 <div class="form-group">
+                    <label for="instrumentName">Name</label>
+                    <input type="text" id="instrumentName" required placeholder="e.g., Apple Inc., Bitcoin/US Dollar">
+                </div>
+                <div class="form-group">
+                    <label for="instrumentVenue">Venue</label>
+                    <select id="instrumentVenue" required></select>
+                </div>
+                <div class="form-group">
+                     <label for="instrumentDescription">Description</label>
+                     <textarea id="instrumentDescription" rows="3" placeholder="A short description of the instrument..."></textarea>
+                </div>
+                <button type="submit" class="btn">Save Instrument</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // NOTE: This script uses "dummy" data and simulates API calls in the console.
+
+        // --- DUMMY DATA ---
+        const dummyVenues = [
+            { id: 101, name: 'UBS Global Markets (Crypto)', location: 'New York', type: 'CRYPTO', status: 'OPEN' },
+            { id: 245, name: 'UBS FX ECN', location: 'London', type: 'FX', status: 'CLOSED' },
+            { id: 389, name: 'UBS Equities Dark Pool', location: 'Chicago', type: 'EQUITY', status: 'OPEN' },
+        ];
+
+        const dummyInstruments = [
+            { id: 1, symbol: 'BTC/USD', name: 'Bitcoin / US Dollar', venueId: 101, description: 'The leading cryptocurrency pair.' },
+            { id: 2, symbol: 'EUR/GBP', name: 'Euro / British Pound', venueId: 245, a: 'A major currency pair.' },
+            { id: 3, symbol: 'AAPL', name: 'Apple Inc.', venueId: 389, description: 'Common stock of Apple Inc.' }
+        ];
+
+        // --- PAGE NAVIGATION ---
+        document.querySelector('.sidebar nav').addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (!link) return;
+            const page = link.dataset.page;
+            if (!page) return;
+
+            document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById(`${page}-content`).classList.add('active');
+        });
+
+        // --- VENUE LOGIC ---
+        const venueModal = document.getElementById('venueModal');
+
+        function renderVenueTable() {
+            const tableBody = document.getElementById('venueTableBody');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            dummyVenues.forEach(venue => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${venue.id}</td>
+                    <td>${venue.name}</td>
+                    <td>${venue.location}</td>
+                    <td>${venue.type}</td>
+                    <td><span class="status ${venue.status.toLowerCase()}">${venue.status}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="toggleVenueStatus(${venue.id})">Toggle</button>
+                        <button class="action-btn" onclick="editVenue(${venue.id})">Edit</button>
+                    </td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function toggleVenueStatus(id) {
+            const venue = dummyVenues.find(v => v.id === id);
+            if (venue) {
+                venue.status = venue.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+                console.log(`Simulating API call: PUT /api/venues/${id}/status with body: ${venue.status}`);
+                renderVenueTable();
+            }
+        }
+        
+        function editVenue(id) {
+            const venue = dummyVenues.find(v => v.id === id);
+            if (venue) {
+                document.getElementById('venueModalTitle').textContent = 'Edit Venue';
+                document.getElementById('venueForm').reset();
+                document.getElementById('venueId').value = venue.id;
+                document.getElementById('venueName').value = venue.name;
+                document.getElementById('venueLocation').value = venue.location;
+                document.getElementById('venueType').value = venue.type;
+                document.getElementById('venueStatus').value = venue.status;
+                venueModal.style.display = 'flex';
+            }
+        }
+        
+        document.getElementById('addVenueBtn').onclick = () => {
+            document.getElementById('venueModalTitle').textContent = 'Add New Venue';
+            document.getElementById('venueForm').reset();
+            document.getElementById('venueId').value = '';
+            venueModal.style.display = 'flex';
+        };
+
+        document.getElementById('venueForm').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('venueId').value;
+            const data = {
+                name: document.getElementById('venueName').value,
+                location: document.getElementById('venueLocation').value,
+                type: document.getElementById('venueType').value,
+                status: document.getElementById('venueStatus').value
+            };
+
+            if (id) {
+                const index = dummyVenues.findIndex(v => v.id == id);
+                dummyVenues[index] = { ...dummyVenues[index], ...data };
+                console.log(`Simulating API call: PUT /api/venues/${id}`, data);
+            } else {
+                const newId = Math.floor(Math.random() * 1000) + 500
+                dummyVenues.push({ id: newId, ...data });
+                console.log(`Simulating API call: POST /api/venues`, {id: newId, ...data});
+            }
+            venueModal.style.display = 'none';
+            renderVenueTable();
+        };
+
+        // --- INSTRUMENT LOGIC ---
+        const instrumentModal = document.getElementById('instrumentModal');
+        
+        function renderInstrumentTable() {
+            const tableBody = document.getElementById('instrumentTableBody');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            dummyInstruments.forEach(inst => {
+                const venue = dummyVenues.find(v => v.id === inst.venueId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${inst.id}</td>
+                    <td>${inst.symbol}</td>
+                    <td>${inst.name}</td>
+                    <td>${venue ? venue.name : 'N/A'}</td>
+                    <td>${inst.description || ''}</td>
+                    <td>
+                        <button class="action-btn" onclick="editInstrument(${inst.id})">Edit</button>
+                    </td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function populateVenueDropdown() {
+            const select = document.getElementById('instrumentVenue');
+            select.innerHTML = '<option value="">Select a Venue</option>';
+            dummyVenues.forEach(v => {
+                select.innerHTML += `<option value="${v.id}">${v.name}</option>`;
+            });
+        }
+        
+        function editInstrument(id) {
+            const inst = dummyInstruments.find(i => i.id === id);
+            if(inst) {
+                document.getElementById('instrumentModalTitle').textContent = 'Edit Instrument';
+                document.getElementById('instrumentForm').reset();
+                populateVenueDropdown();
+                document.getElementById('instrumentId').value = inst.id;
+                document.getElementById('instrumentSymbol').value = inst.symbol;
+                document.getElementById('instrumentName').value = inst.name;
+                document.getElementById('instrumentVenue').value = inst.venueId;
+                document.getElementById('instrumentDescription').value = inst.description || '';
+                instrumentModal.style.display = 'flex';
+            }
+        }
+        
+        document.getElementById('addInstrumentBtn').onclick = () => {
+            document.getElementById('instrumentModalTitle').textContent = 'Add New Instrument';
+            document.getElementById('instrumentForm').reset();
+            populateVenueDropdown();
+            document.getElementById('instrumentId').value = '';
+            instrumentModal.style.display = 'flex';
+        };
+
+        document.getElementById('instrumentForm').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('instrumentId').value;
+            const data = {
+                symbol: document.getElementById('instrumentSymbol').value,
+                name: document.getElementById('instrumentName').value,
+                venueId: parseInt(document.getElementById('instrumentVenue').value),
+                description: document.getElementById('instrumentDescription').value,
+            };
+
+            if (id) {
+                const index = dummyInstruments.findIndex(i => i.id == id);
+                dummyInstruments[index] = { ...dummyInstruments[index], ...data };
+                console.log(`Simulating API call: PUT /api/instruments/${id}`, data);
+            } else {
+                const newId = Math.floor(Math.random() * 100) + 10;
+                dummyInstruments.push({ id: newId, ...data });
+                 console.log(`Simulating API call: POST /api/instruments`, {id: newId, ...data});
+            }
+            instrumentModal.style.display = 'none';
+            renderInstrumentTable();
+        };
+
+        // --- GENERIC MODAL CLOSING ---
+        document.querySelectorAll('.modal .close-btn').forEach(btn => {
+            btn.onclick = () => {
+                btn.closest('.modal').style.display = 'none';
+            }
+        });
+        window.onclick = (event) => {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // --- INITIAL RENDER ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderVenueTable();
+            renderInstrumentTable();
+        });
+    </script>
+
+</body>
+</html>
+
