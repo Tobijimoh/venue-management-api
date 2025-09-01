@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.CascadeType;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 public class Venue extends BaseEntity {
+
     private String name;
     private String location;
     private String type;
@@ -22,6 +24,13 @@ public class Venue extends BaseEntity {
     private VenueStatus status;
 
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Instrument> Instruments;
+    private List<Instrument> instruments;
 
+    // Default status before persisting
+    @PrePersist
+    public void prePersist() {
+        if (status == null) {
+            status = VenueStatus.OPEN;
+        }
+    }
 }
