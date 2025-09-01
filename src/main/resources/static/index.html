@@ -6,16 +6,16 @@
     <title>Trading Venue Management Dashboard</title>
     <style>
         :root {
-            /* UBS Inspired Color Palette */
-            --primary-bg: #1C1C1C; /* Near Black */
-            --secondary-bg: #2C2C2C; /* Dark Gray */
-            --sidebar-bg: #000000;   /* Black */
-            --accent-color: #D90000; /* UBS Red */
-            --text-color: #FFFFFF;   /* White */
-            --border-color: #444444; /* Medium Gray for borders */
+            --primary-bg: #1C1C1C;
+            --secondary-bg: #2C2C2C;
+            --sidebar-bg: #000000;
+            --accent-color: #D90000;
+            --text-color: #FFFFFF;
+            --border-color: #444444;
             --success-color: #2ECC71;
             --warning-color: #f39c12;
-            --suspended-color: #c0392b;
+            --halted-color: #E67E22;
+            --decommissioned-color: #7f8c8d;
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         body {
@@ -130,10 +130,11 @@
             min-width: 80px;
             font-size: 0.9em;
         }
-        .status.open, .status.active { background-color: var(--success-color); }
-        .status.closed { background-color: var(--accent-color); } /* Using accent for closed */
-        .status.suspended { background-color: var(--suspended-color); }
-        .status.pending_onboarding { background-color: var(--warning-color); }
+        .status.open { background-color: var(--success-color); }
+        .status.closed { background-color: #3498db; } /* Blue for Closed */
+        .status.pending-approval { background-color: var(--warning-color); }
+        .status.halted { background-color: var(--halted-color); }
+        .status.decommissioned { background-color: var(--decommissioned-color); color: #2C2C2C; }
 
         .action-btn {
             background-color: transparent;
@@ -148,6 +149,13 @@
         .action-btn:hover {
             background-color: var(--border-color);
             color: white;
+        }
+        
+        .description-cell {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .notice-box {
@@ -179,7 +187,7 @@
             width: 100%; padding: 12px; box-sizing: border-box; background-color: var(--primary-bg);
             border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; font-size: 1em; resize: vertical;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; box-shadow: 0 0 10px rgba(217, 0, 0, 0.5); }
+        .form-group input:focus, .form-group select:focus { outline: none; box-shadow: 0 0 10px rgba(217, 0, 0, 0.5); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -234,58 +242,21 @@
             </div>
         </div>
 
-        <!-- Participants Page -->
+        <!-- Participants Page (Static Mockup) -->
         <div id="participants-content" class="page-content">
             <div class="header">
                 <h2>Manage Participants</h2>
                 <button class="btn" disabled>Add New Participant</button>
             </div>
             <div class="notice-box">
-                <strong>Future Enhancement:</strong> The functionality for this section is planned for a future release. This demonstrates the next logical step in managing the trading venue.
+                <strong>Future Enhancement:</strong> This section demonstrates the next logical step: managing the firms that trade on the venues.
             </div>
             <div class="table-container">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Participant ID</th>
-                            <th>Firm Name</th>
-                            <th>Status</th>
-                            <th>Last Activity</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="participantTableBody">
-                        <!-- Mock-up data to show the vision -->
-                        <tr>
-                            <td>P5821</td>
-                            <td>Quantum Hedge Fund</td>
-                            <td><span class="status active">ACTIVE</span></td>
-                            <td>2025-09-01 13:50:11</td>
-                            <td>
-                                <button class="action-btn" disabled>View Traders</button>
-                                <button class="action-btn" disabled>Set Risk Limits</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>P9473</td>
-                            <td>Alpha Trading Group</td>
-                            <td><span class="status suspended">SUSPENDED</span></td>
-                            <td>2025-08-28 10:21:45</td>
-                            <td>
-                                <button class="action-btn" disabled>View Traders</button>
-                                <button class="action-btn" disabled>Set Risk Limits</button>
-                            </td>
-                        </tr>
-                         <tr>
-                            <td>P1102</td>
-                            <td>Momentum Capital</td>
-                            <td><span class="status pending_onboarding">PENDING</span></td>
-                            <td>N/A</td>
-                            <td>
-                                <button class="action-btn" disabled>View Traders</button>
-                                <button class="action-btn" disabled>Set Risk Limits</button>
-                            </td>
-                        </tr>
+                    <thead><tr><th>Participant ID</th><th>Firm Name</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        <tr><td>P5821</td><td>Quantum Hedge Fund</td><td><span class="status open">ACTIVE</span></td><td><button class="action-btn" disabled>View Traders</button></td></tr>
+                        <tr><td>P9473</td><td>Alpha Trading Group</td><td><span class="status halted">SUSPENDED</span></td><td><button class="action-btn" disabled>View Traders</button></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -316,17 +287,20 @@
                 <div class="form-group">
                     <label for="venueStatus">Initial Status</label>
                     <select id="venueStatus">
-                        <option value="OPEN">OPEN</option>
-                        <option value="CLOSED">CLOSED</option>
+                        <option value="PENDING_APPROVAL">Pending Approval</option>
+                        <option value="OPEN">Open</option>
+                        <option value="CLOSED">Closed</option>
+                        <option value="HALTED">Halted</option>
+                        <option value="DECOMMISSIONED">Decommissioned</option>
                     </select>
                 </div>
                 <button type="submit" class="btn">Save Venue</button>
             </form>
         </div>
     </div>
-    
+
     <!-- Add/Edit Instrument Modal -->
-     <div id="instrumentModal" class="modal">
+    <div id="instrumentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="instrumentModalTitle">Add New Instrument</h3>
@@ -354,21 +328,22 @@
             </form>
         </div>
     </div>
-
+    
     <script>
-        // NOTE: This script uses "dummy" data and simulates API calls in the console.
-
         // --- DUMMY DATA ---
         const dummyVenues = [
-            { id: 101, name: 'UBS Global Markets (Crypto)', location: 'New York', type: 'CRYPTO', status: 'OPEN' },
-            { id: 245, name: 'UBS FX ECN', location: 'London', type: 'FX', status: 'CLOSED' },
-            { id: 389, name: 'UBS Equities Dark Pool', location: 'Chicago', type: 'EQUITY', status: 'OPEN' },
+            { id: 101, name: 'Coinbase Exchange', location: 'New York', type: 'CRYPTO', status: 'OPEN' },
+            { id: 245, name: 'LMAX Group', location: 'London', type: 'FX', status: 'CLOSED' },
+            { id: 389, name: 'CME Group', location: 'Chicago', type: 'FUTURES', status: 'HALTED' },
+            { id: 412, name: 'Singapore Exchange (SGX)', location: 'Singapore', type: 'EQUITY', status: 'PENDING_APPROVAL' },
+            { id: 533, name: 'London Metal Exchange', location: 'London', type: 'COMMODITY', status: 'DECOMMISSIONED' },
         ];
 
         const dummyInstruments = [
             { id: 1, symbol: 'BTC/USD', name: 'Bitcoin / US Dollar', venueId: 101, description: 'The leading cryptocurrency pair.' },
-            { id: 2, symbol: 'EUR/GBP', name: 'Euro / British Pound', venueId: 245, a: 'A major currency pair.' },
-            { id: 3, symbol: 'AAPL', name: 'Apple Inc.', venueId: 389, description: 'Common stock of Apple Inc.' }
+            { id: 2, symbol: 'EUR/GBP', name: 'Euro / British Pound', venueId: 245, description: 'A major currency pair.' },
+            { id: 3, symbol: 'AAPL', name: 'Apple Inc.', venueId: 412, description: 'Common stock of Apple Inc.' },
+            { id: 4, symbol: 'ESZ25', name: 'E-Mini S&P 500 Futures', venueId: 389, description: 'A stock market index futures contract.'}
         ];
 
         // --- PAGE NAVIGATION ---
@@ -385,6 +360,11 @@
             document.getElementById(`${page}-content`).classList.add('active');
         });
 
+        // --- UTILITY FUNCTIONS ---
+        function formatStatusText(status) {
+            return status.replace(/_/g, ' ').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+        }
+
         // --- VENUE LOGIC ---
         const venueModal = document.getElementById('venueModal');
 
@@ -394,27 +374,18 @@
             tableBody.innerHTML = '';
             dummyVenues.forEach(venue => {
                 const row = document.createElement('tr');
+                const statusClass = venue.status.toLowerCase().replace(/_/g, '-');
                 row.innerHTML = `
                     <td>${venue.id}</td>
                     <td>${venue.name}</td>
                     <td>${venue.location}</td>
                     <td>${venue.type}</td>
-                    <td><span class="status ${venue.status.toLowerCase()}">${venue.status}</span></td>
+                    <td><span class="status ${statusClass}">${formatStatusText(venue.status)}</span></td>
                     <td>
-                        <button class="action-btn" onclick="toggleVenueStatus(${venue.id})">Toggle</button>
                         <button class="action-btn" onclick="editVenue(${venue.id})">Edit</button>
                     </td>`;
                 tableBody.appendChild(row);
             });
-        }
-
-        function toggleVenueStatus(id) {
-            const venue = dummyVenues.find(v => v.id === id);
-            if (venue) {
-                venue.status = venue.status === 'OPEN' ? 'CLOSED' : 'OPEN';
-                console.log(`Simulating API call: PUT /api/venues/${id}/status with body: ${venue.status}`);
-                renderVenueTable();
-            }
         }
         
         function editVenue(id) {
@@ -435,6 +406,7 @@
             document.getElementById('venueModalTitle').textContent = 'Add New Venue';
             document.getElementById('venueForm').reset();
             document.getElementById('venueId').value = '';
+            document.getElementById('venueStatus').value = 'PENDING_APPROVAL';
             venueModal.style.display = 'flex';
         };
 
@@ -453,17 +425,19 @@
                 dummyVenues[index] = { ...dummyVenues[index], ...data };
                 console.log(`Simulating API call: PUT /api/venues/${id}`, data);
             } else {
-                const newId = Math.floor(Math.random() * 1000) + 500
+                const newId = Math.floor(Math.random() * 1000) + 600;
                 dummyVenues.push({ id: newId, ...data });
                 console.log(`Simulating API call: POST /api/venues`, {id: newId, ...data});
             }
             venueModal.style.display = 'none';
             renderVenueTable();
+            // Re-render instruments in case a venue name changed
+            renderInstrumentTable();
         };
 
         // --- INSTRUMENT LOGIC ---
         const instrumentModal = document.getElementById('instrumentModal');
-        
+
         function renderInstrumentTable() {
             const tableBody = document.getElementById('instrumentTableBody');
             if(!tableBody) return;
@@ -476,7 +450,7 @@
                     <td>${inst.symbol}</td>
                     <td>${inst.name}</td>
                     <td>${venue ? venue.name : 'N/A'}</td>
-                    <td>${inst.description || ''}</td>
+                    <td class="description-cell" title="${inst.description}">${inst.description}</td>
                     <td>
                         <button class="action-btn" onclick="editInstrument(${inst.id})">Edit</button>
                     </td>`;
