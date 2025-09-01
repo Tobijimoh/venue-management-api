@@ -2,6 +2,7 @@ package com.tobi.venuemgmt.service;
 
 import com.tobi.venuemgmt.model.Venue;
 import com.tobi.venuemgmt.model.VenueStatus;
+import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,10 @@ public class VenueService {
 
     public Venue saveVenue(Venue venue) {
         if (venue.getId() == null) {
+            List<Venue> existingVenues = venueRepository.findByNameContainingIgnoreCase(venue.getName());
+            if (!existingVenues.isEmpty()) {
+                throw new ResourceAlreadyExistsException("A venue with the new '" + venue.getName() + "' already exists.");
+            }
             venue.setStatus(VenueStatus.OPEN);
         }
         return venueRepository.save(venue);
@@ -42,8 +47,7 @@ public class VenueService {
     public Venue updateVenueStatus(Long id, VenueStatus newStatus) {
         Venue venue = findVenueById(id);
         venue.setStatus(newStatus);
-        return venueRepository.save(venue);
-        
+        return venueRepository.save(venue); 
     }
 
     public List<Venue> findVenuesByType(String type) {
