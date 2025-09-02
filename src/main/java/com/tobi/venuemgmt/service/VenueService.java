@@ -30,13 +30,23 @@ public class VenueService {
     }
 
     public Venue saveVenue(Venue venue) {
+
+        checkDuplicateVenue(venue);
+
         if (venue.getId() == null) {
-            List<Venue> existingVenues = venueRepository.findByNameContainingIgnoreCase(venue.getName());
-            if (!existingVenues.isEmpty()) {
-                throw new ResourceAlreadyExistsException("A venue with the new '" + venue.getName() + "' already exists.");
-            }
             venue.setStatus(VenueStatus.OPEN);
         }
+        return venueRepository.save(venue);
+    }
+
+     public Venue updateVenue(Long id, Venue updatedVenue) {
+        Venue venue = findVenueById(id); // Throws an exception if not found
+
+        checkDuplicateVenue(updatedVenue);
+
+        venue.setName(updatedVenue.getName());
+        venue.setLocation(updatedVenue.getLocation());
+        venue.setType(updatedVenue.getType());
         return venueRepository.save(venue);
     }
 
@@ -56,5 +66,16 @@ public class VenueService {
 
     public List<Venue> findVenuesByName(String name) {
         return venueRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    //Helper method to check for duplicate venue names
+    private void checkDuplicateVenue(Venue venue) {
+        List<Venue> existingVenues = venueRepository.findByNameContainingIgnoreCase(venue.getName());
+        if (!existingVenues.isEmpty()) {
+            // Check if the found venue is the same as the one being updated
+            if (venue.getId() == null || (existingVenues.size() > 1 || existingVenues.get(0).getId() != venue.getId())) {
+                throw new ResourceAlreadyExistsException("A venue with the name '" + venue.getName() + "' already exists.");
+            }
+        }
     }
 }
