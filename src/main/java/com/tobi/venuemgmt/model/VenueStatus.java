@@ -31,4 +31,3 @@ public enum VenueStatus {
      * The venue has been permanently decommissioned and can no longer be used.
      */
     DECOMMISSIONED
-}
