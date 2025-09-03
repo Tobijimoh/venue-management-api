@@ -7,7 +7,6 @@ import com.tobi.venuemgmt.repository.InstrumentRepository;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class InstrumentService {
@@ -29,10 +28,38 @@ public class InstrumentService {
     }
 
     public Instrument saveInstrument(Instrument instrument) {
+        // Basic save operation, delegates directly to the repository.
         return instrumentRepository.save(instrument);
     }
 
+    /**
+     * Updates an existing instrument's descriptive details.
+     * This method intentionally does not allow changing the instrument's symbol or its parent venue,
+     * as these are considered immutable properties after creation to maintain data integrity.
+     *
+     * @param id The ID of the instrument to update.
+     * @param instrumentDetails An Instrument object containing the new details.
+     * @return The updated and saved Instrument entity.
+     * @throws ResourceNotFoundException if no instrument is found with the given ID.
+     */
+    public Instrument updateInstrument(Long id, Instrument instrumentDetails) {
+        // Find the existing instrument or throw an exception if not found.
+        Instrument existingInstrument = findInstrumentById(id);
+
+        // Update only the descriptive, mutable fields.
+        existingInstrument.setName(instrumentDetails.getName());
+        existingInstrument.setType(instrumentDetails.getType());
+
+        // Note: Symbol and Venue are intentionally not updated here.
+        // Changing these would be a more complex operation like a delist/relist.
+        return instrumentRepository.save(existingInstrument);
+    }
+
     public void deleteInstrument(Long id) {
+        // Check if the instrument exists before trying to delete to provide a clear error.
+        if (!instrumentRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Instrument with ID " + id + " not found, cannot delete.");
+        }
         instrumentRepository.deleteById(id);
     }
 
@@ -40,3 +67,4 @@ public class InstrumentService {
         return instrumentRepository.findByVenueId(venueId);
     }
 }
+
