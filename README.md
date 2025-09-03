@@ -1,4 +1,4 @@
-# Trading Venue Management API
+# TradeVenue API
 
 A RESTful API for managing trading venues. Users can create, read, update, and delete venue records. Built with **Java 21** and **Spring Boot**, this project demonstrates core API development skills including CRUD operations, database integration, and unit testing.
 
