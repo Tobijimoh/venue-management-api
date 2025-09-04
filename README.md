@@ -11,6 +11,11 @@ A RESTful API for managing trading venues. Users can create, read, update, and d
 - Open or close a venue
 - Filter venues by status or name
 
+### Entity Relationship Diagram (ERD)
+The following diagram illustrates the relationships between the core entities in the database.
+
+![Entity Relationship Diagram](assets/erd.png)
+
 ## Tech Stack
 
 - Java 21
