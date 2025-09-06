@@ -1,5 +1,6 @@
 package com.tobi.venuemgmt.model;
 
+import com.tobi.venuemgmt.model.VenueType;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Entity;
@@ -24,7 +25,9 @@ import java.util.List;
 public class Venue extends BaseEntity {
     private String name;
     private String location;
-    private String type;
+
+    @Enumerated(EnumType.STRING)
+    private VenueType type;
 
     @Enumerated(EnumType.STRING)
     private VenueStatus status;
