@@ -1,6 +1,8 @@
 package com.tobi.venuemgmt.service;
 
 import com.tobi.venuemgmt.model.Instrument;
+import com.tobi.venuemgmt.model.InstrumentType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tobi.venuemgmt.repository.InstrumentRepository;
@@ -65,6 +67,10 @@ public class InstrumentService {
 
     public List<Instrument> findInstrumentsByVenueId(Long venueId) {
         return instrumentRepository.findByVenueId(venueId);
+    }
+
+    public List<Instrument> findInstrumentsByType(InstrumentType type) {
+        return instrumentRepository.findByType(type);
     }
 }
 

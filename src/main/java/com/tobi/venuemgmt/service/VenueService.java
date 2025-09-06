@@ -2,6 +2,7 @@ package com.tobi.venuemgmt.service;
 
 import com.tobi.venuemgmt.model.Venue;
 import com.tobi.venuemgmt.model.VenueStatus;
+import com.tobi.venuemgmt.model.VenueType;
 import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,7 @@ public class VenueService {
         return venueRepository.save(venue); 
     }
 
-    public List<Venue> findVenuesByType(String type) {
+    public List<Venue> findVenuesByType(VenueType type) {
         return venueRepository.findByTypeIgnoreCase(type);
     }
 

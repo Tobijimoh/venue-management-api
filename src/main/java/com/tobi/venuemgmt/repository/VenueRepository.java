@@ -1,6 +1,8 @@
 package com.tobi.venuemgmt.repository;
 
 import com.tobi.venuemgmt.model.Venue;
+import com.tobi.venuemgmt.model.VenueType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,7 +13,7 @@ import java.util.List;
 @Repository
 public interface VenueRepository extends JpaRepository<Venue, Long> {
 
-    List<Venue> findByTypeIgnoreCase(String type);
+    List<Venue> findByTypeIgnoreCase(VenueType type);
     
     List<Venue> findByStatus(String status);
 
