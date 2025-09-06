@@ -4,6 +4,7 @@ import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 import com.tobi.venuemgmt.model.Venue;
 import com.tobi.venuemgmt.model.VenueStatus;
+import com.tobi.venuemgmt.model.VenueType;
 import com.tobi.venuemgmt.repository.VenueRepository;
 import com.tobi.venuemgmt.service.VenueService;
 
@@ -36,7 +37,7 @@ public class VenueServiceTest {
         venue.setId(1L);
         venue.setName("NYSE");
         venue.setLocation("New York");
-        venue.setType("RM");
+        venue.setType(VenueType.RM);
         venue.setStatus(VenueStatus.OPEN);
         return venue;
     }
@@ -76,7 +77,7 @@ public class VenueServiceTest {
         Venue newVenue = new Venue();
         newVenue.setName("LSE");
         newVenue.setLocation("London");
-        newVenue.setType("RM");
+        newVenue.setType(VenueType.RM);
 
         when(venueRepository.findByNameContainingIgnoreCase("LSE")).thenReturn(Collections.emptyList());
         when(venueRepository.save(any(Venue.class))).thenAnswer(invocation -> {
@@ -109,7 +110,7 @@ public class VenueServiceTest {
         Venue updatedVenue = new Venue();
         updatedVenue.setName("Updated NYSE");
         updatedVenue.setLocation("Updated Location");
-        updatedVenue.setType("Updated Type");
+        updatedVenue.setType(VenueType.MTF);
 
         when(venueRepository.findById(1L)).thenReturn(Optional.of(existingVenue));
         when(venueRepository.save(existingVenue)).thenReturn(existingVenue);
@@ -118,7 +119,7 @@ public class VenueServiceTest {
 
         assertEquals("Updated NYSE", result.getName());
         assertEquals("Updated Location", result.getLocation());
-        assertEquals("Updated Type", result.getType());
+        assertEquals(VenueType.MTF, result.getType());
     }
 
     @Test
@@ -144,9 +145,9 @@ public class VenueServiceTest {
     @Test
     void whenFindByType_thenReturnFilteredVenues() {
         Venue venue = createSampleVenue();
-        when(venueRepository.findByTypeIgnoreCase("RM")).thenReturn(List.of(venue));
+        when(venueRepository.findByType(VenueType.RM)).thenReturn(List.of(venue));
 
-        List<Venue> result = venueService.findVenuesByType("RM");
+        List<Venue> result = venueService.findVenuesByType(VenueType.RM);
 
         assertEquals(1, result.size());
         assertEquals("NYSE", result.get(0).getName());

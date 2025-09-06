@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface VenueRepository extends JpaRepository<Venue, Long> {
 
-    List<Venue> findByTypeIgnoreCase(VenueType type);
+    List<Venue> findByType(VenueType type);
     
     List<Venue> findByStatus(String status);
 
