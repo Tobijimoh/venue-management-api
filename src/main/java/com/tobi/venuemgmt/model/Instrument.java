@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
@@ -23,7 +25,9 @@ public class Instrument extends BaseEntity {
 
     private String symbol;
     private String name;
-    private String type;
+
+    @Enumerated(EnumType.STRING)
+    private InstrumentType type;
 
     @ManyToOne
     @JoinColumn(name = "venue_id")

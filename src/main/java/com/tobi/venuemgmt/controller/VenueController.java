@@ -2,6 +2,7 @@ package com.tobi.venuemgmt.controller;
 
 import com.tobi.venuemgmt.model.Venue;
 import com.tobi.venuemgmt.model.VenueStatus;
+import com.tobi.venuemgmt.model.VenueType;
 import com.tobi.venuemgmt.service.VenueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,18 +29,19 @@ public class VenueController {
     }
 
     /**
-     * Retrieves all venues. Can be filtered by type or name using request parameters.
+     * Retrieves all venues. Can be filtered by type or name using request
+     * parameters.
      * If no parameters are provided, it returns all venues.
      */
     @GetMapping
     @Operation(summary = "Get all venues or filter by properties", description = "Returns a list of all venues. Optionally filters by 'type' or 'name'.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved list")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list")
     })
     public ResponseEntity<List<Venue>> getAllVenues(
-            @Parameter(description = "Filter venues by type (e.g., EQUITY, FX)") @RequestParam(required = false) String type,
-            @Parameter(description = "Filter venues by a case-insensitive partial name match") @RequestParam(required = false) String name) {
-        
+            @RequestParam(required = false) VenueType type, // Use VenueType enum
+            @RequestParam(required = false) String name) {
+
         if (type != null) {
             return ResponseEntity.ok(venueService.findVenuesByType(type));
         }
@@ -55,10 +57,11 @@ public class VenueController {
     @GetMapping("/{id}")
     @Operation(summary = "Get a single venue by ID", description = "Returns a single venue, if found.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved venue"),
-        @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved venue"),
+            @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
     })
-    public ResponseEntity<Venue> getVenueById(@Parameter(description = "ID of the venue to retrieve") @PathVariable Long id) {
+    public ResponseEntity<Venue> getVenueById(
+            @Parameter(description = "ID of the venue to retrieve") @PathVariable Long id) {
         return ResponseEntity.ok(venueService.findVenueById(id));
     }
 
@@ -68,7 +71,7 @@ public class VenueController {
     @PostMapping
     @Operation(summary = "Create a new venue", description = "Creates a new venue and returns the created entity with its new ID.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Venue created successfully")
+            @ApiResponse(responseCode = "201", description = "Venue created successfully")
     })
     public ResponseEntity<Venue> createVenue(@RequestBody Venue venue) {
         Venue savedVenue = venueService.saveVenue(venue);
@@ -82,11 +85,11 @@ public class VenueController {
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing venue", description = "Updates all details for an existing venue identified by its ID.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Venue updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
+            @ApiResponse(responseCode = "200", description = "Venue updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
     })
     public ResponseEntity<Venue> updateVenue(
-            @Parameter(description = "ID of the venue to update") @PathVariable Long id, 
+            @Parameter(description = "ID of the venue to update") @PathVariable Long id,
             @RequestBody Venue updatedVenue) {
         Venue venue = venueService.updateVenue(id, updatedVenue);
         return ResponseEntity.ok(venue);
@@ -99,11 +102,11 @@ public class VenueController {
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update a venue's status", description = "Partially updates only the status of a specific venue.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Venue status updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
+            @ApiResponse(responseCode = "200", description = "Venue status updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
     })
     public ResponseEntity<Venue> updateVenueStatus(
-            @Parameter(description = "ID of the venue to update") @PathVariable Long id, 
+            @Parameter(description = "ID of the venue to update") @PathVariable Long id,
             @Parameter(description = "The new status for the venue") @RequestParam VenueStatus status) {
         Venue updatedVenue = venueService.updateVenueStatus(id, status);
         return ResponseEntity.ok(updatedVenue);
@@ -115,10 +118,11 @@ public class VenueController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a venue", description = "Deletes a venue from the database by its ID.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Venue deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
+            @ApiResponse(responseCode = "204", description = "Venue deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Venue not found with the given ID")
     })
-    public ResponseEntity<Void> deleteVenue(@Parameter(description = "ID of the venue to delete") @PathVariable Long id) {
+    public ResponseEntity<Void> deleteVenue(
+            @Parameter(description = "ID of the venue to delete") @PathVariable Long id) {
         venueService.deleteVenue(id);
         return ResponseEntity.noContent().build();
     }
