@@ -6,6 +6,7 @@ import com.tobi.venuemgmt.model.InstrumentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tobi.venuemgmt.repository.InstrumentRepository;
+import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 
 import java.util.List;
@@ -30,19 +31,25 @@ public class InstrumentService {
     }
 
     public Instrument saveInstrument(Instrument instrument) {
-        // Basic save operation, delegates directly to the repository.
+        List<Instrument> existing = instrumentRepository.findBySymbolContainingIgnoreCase(instrument.getSymbol());
+        if (!existing.isEmpty()) {
+            throw new ResourceAlreadyExistsException("Instrument with symbol " + instrument.getSymbol() + " already exists.");
+        }
         return instrumentRepository.save(instrument);
     }
 
     /**
      * Updates an existing instrument's descriptive details.
-     * This method intentionally does not allow changing the instrument's symbol or its parent venue,
-     * as these are considered immutable properties after creation to maintain data integrity.
+     * This method intentionally does not allow changing the instrument's symbol or
+     * its parent venue,
+     * as these are considered immutable properties after creation to maintain data
+     * integrity.
      *
-     * @param id The ID of the instrument to update.
+     * @param id                The ID of the instrument to update.
      * @param instrumentDetails An Instrument object containing the new details.
      * @return The updated and saved Instrument entity.
-     * @throws ResourceNotFoundException if no instrument is found with the given ID.
+     * @throws ResourceNotFoundException if no instrument is found with the given
+     *                                   ID.
      */
     public Instrument updateInstrument(Long id, Instrument instrumentDetails) {
         // Find the existing instrument or throw an exception if not found.
@@ -58,7 +65,8 @@ public class InstrumentService {
     }
 
     public void deleteInstrument(Long id) {
-        // Check if the instrument exists before trying to delete to provide a clear error.
+        // Check if the instrument exists before trying to delete to provide a clear
+        // error.
         if (!instrumentRepository.existsById(id)) {
             throw new ResourceNotFoundException("Instrument with ID " + id + " not found, cannot delete.");
         }
@@ -72,5 +80,9 @@ public class InstrumentService {
     public List<Instrument> findInstrumentsByType(InstrumentType type) {
         return instrumentRepository.findByType(type);
     }
-}
 
+    public List<Instrument> findInstrumentsBySymbol(String symbol) {
+        return instrumentRepository.findBySymbolContainingIgnoreCase(symbol);
+    }
+
+}
