@@ -2,12 +2,15 @@ package com.tobi.venuemgmt.service;
 
 import com.tobi.venuemgmt.model.Instrument;
 import com.tobi.venuemgmt.model.InstrumentType;
+import com.tobi.venuemgmt.model.Venue;
+import com.tobi.venuemgmt.model.VenueStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.tobi.venuemgmt.repository.InstrumentRepository;
 import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
+import com.tobi.venuemgmt.exception.VenueClosedException;
 
 import java.util.List;
 
@@ -33,7 +36,8 @@ public class InstrumentService {
     public Instrument saveInstrument(Instrument instrument) {
         List<Instrument> existing = instrumentRepository.findBySymbolContainingIgnoreCase(instrument.getSymbol());
         if (!existing.isEmpty()) {
-            throw new ResourceAlreadyExistsException("Instrument with symbol " + instrument.getSymbol() + " already exists.");
+            throw new ResourceAlreadyExistsException(
+                    "Instrument with symbol " + instrument.getSymbol() + " already exists.");
         }
         return instrumentRepository.save(instrument);
     }
@@ -83,6 +87,26 @@ public class InstrumentService {
 
     public List<Instrument> findInstrumentsBySymbol(String symbol) {
         return instrumentRepository.findBySymbolContainingIgnoreCase(symbol);
+    }
+
+    public void processOrder(Long instrumentId) {
+        // Retrieve the instrument and its associated venue
+        Instrument instrument = findInstrumentById(instrumentId);
+        Venue venue = instrument.getVenue();
+
+        // Ensure the venue is open for trading
+        if (venue.getStatus() != VenueStatus.OPEN) {
+            throw new VenueClosedException(
+                    "Cannot process order. Venue '" + venue.getName() + "' is currently " + venue.getStatus() + ".");
+        }
+
+        // --- Simplified order processing logic ---
+        // In a real system, this could involve sending the order to a trading engine or
+        // message queue.
+        // Here, we simply log the successful processing.
+        System.out.println(
+                "Order for instrument " + instrument.getSymbol() + " processed successfully at " + venue.getName()
+                        + ".");
     }
 
 }
