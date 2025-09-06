@@ -129,6 +129,7 @@ public class InstrumentServiceTest {
 
     @Test
     void whenDeleteInstrument_thenRepositoryDeleteCalled() {
+        when(instrumentRepository.existsById(1L)).thenReturn(true);
         doNothing().when(instrumentRepository).deleteById(1L);
 
         instrumentService.deleteInstrument(1L);
@@ -142,6 +143,17 @@ public class InstrumentServiceTest {
         when(instrumentRepository.findByType(InstrumentType.STOCK)).thenReturn(List.of(instrument));
 
         List<Instrument> result = instrumentService.findInstrumentsByType(InstrumentType.STOCK);
+
+        assertEquals(1, result.size());
+        assertEquals("AAPL", result.get(0).getSymbol());
+    }
+
+    @Test
+    void whenFindBySymbol_thenReturnMatchingInstruments() {
+        Instrument instrument = createSampleInstrument();
+        when(instrumentRepository.findBySymbolContainingIgnoreCase("AAPL")).thenReturn(List.of(instrument));
+
+        List<Instrument> result = instrumentService.findInstrumentsBySymbol("AAPL");
 
         assertEquals(1, result.size());
         assertEquals("AAPL", result.get(0).getSymbol());
