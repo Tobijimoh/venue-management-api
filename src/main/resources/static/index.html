@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Venue Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-bg: #1C1C1C;
@@ -13,9 +17,7 @@
             --text-color: #FFFFFF;
             --border-color: #444444;
             --success-color: #2ECC71;
-            --warning-color: #f39c12;
-            --halted-color: #E67E22;
-            --decommissioned-color: #7f8c8d;
+            --error-color: #E74C3C;
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         body {
@@ -27,148 +29,9 @@
             height: 100vh;
             overflow: hidden;
         }
-        .sidebar {
-            width: 250px;
-            background-color: var(--sidebar-bg);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
-            flex-shrink: 0;
-        }
-        .sidebar h1 {
-            color: var(--accent-color);
-            margin: 0 0 40px 0;
-            font-size: 1.5em;
-            text-align: center;
-            font-weight: bold;
-        }
-        .sidebar nav a {
-            cursor: pointer;
-            color: var(--text-color);
-            text-decoration: none;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .sidebar nav a.active, .sidebar nav a:hover {
-            background-color: var(--accent-color);
-            color: white;
-        }
-        .main-content {
-            flex-grow: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
-        .page-content {
-            display: none;
-        }
-        .page-content.active {
-            display: block;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        .header h2 {
-            margin: 0;
-            font-size: 2em;
-        }
-        .btn {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            background-color: #B80000; /* Darker Red on hover */
-        }
-        .table-container {
-            background-color: var(--secondary-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 20px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        th {
-            background-color: #333333; /* Slightly lighter than secondary bg for header */
-            font-weight: bold;
-        }
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-        tbody tr:hover {
-            background-color: #383838;
-        }
-        .status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            display: inline-block;
-            min-width: 80px;
-            font-size: 0.9em;
-        }
-        .status.open { background-color: var(--success-color); }
-        .status.closed { background-color: #3498db; } /* Blue for Closed */
-        .status.pending-approval { background-color: var(--warning-color); }
-        .status.halted { background-color: var(--halted-color); }
-        .status.decommissioned { background-color: var(--decommissioned-color); color: #2C2C2C; }
-
-        .action-btn {
-            background-color: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 5px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .action-btn:hover {
-            background-color: var(--border-color);
-            color: white;
-        }
-        
-        .description-cell {
-            max-width: 300px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .notice-box {
-            background-color: #2C2C2C;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 5px solid var(--accent-color);
-        }
-        
-        /* Modal Styles */
+        .status-open { background-color: var(--success-color); }
+        .status-closed { background-color: var(--error-color); }
+        /* Generic Modal and Form styling */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; animation: fadeIn 0.3s;
@@ -188,75 +51,126 @@
             border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; font-size: 1em; resize: vertical;
         }
         .form-group input:focus, .form-group select:focus { outline: none; box-shadow: 0 0 10px rgba(217, 0, 0, 0.5); }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-white font-inter">
 
-    <aside class="sidebar">
-        <h1>VenueControl</h1>
-        <nav>
-            <a data-page="venues" class="active">
+    <aside class="sidebar w-64 p-6 bg-gray-950 flex flex-col border-r border-gray-700 flex-shrink-0">
+        <h1 class="text-2xl font-bold text-red-600 text-center mb-10">VenueControl</h1>
+        <nav class="flex flex-col">
+            <a data-page="venues" class="nav-link active px-4 py-3 mb-2 rounded-lg flex items-center gap-3 transition-colors duration-300 hover:bg-red-600 hover:text-white cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span>Venues</span>
             </a>
-            <a data-page="instruments">
+            <a data-page="instruments" class="nav-link px-4 py-3 mb-2 rounded-lg flex items-center gap-3 transition-colors duration-300 hover:bg-red-600 hover:text-white cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 <span>Instruments</span>
             </a>
-             <a data-page="participants">
+             <a data-page="participants" class="nav-link px-4 py-3 mb-2 rounded-lg flex items-center gap-3 transition-colors duration-300 hover:bg-red-600 hover:text-white cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 <span>Participants</span>
             </a>
         </nav>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content flex-grow p-10 overflow-y-auto">
         <!-- Venues Page -->
         <div id="venues-content" class="page-content active">
-            <div class="header">
-                <h2>Manage Venues</h2>
-                <button class="btn" id="addVenueBtn">Add New Venue</button>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Manage Venues</h2>
+                <button class="btn bg-red-600 text-white px-6 py-3 rounded-lg font-bold transition-all hover:bg-red-700 hover:scale-105" id="addVenueBtn">Add New Venue</button>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>ID</th><th>Name</th><th>Location</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
-                    <tbody id="venueTableBody"></tbody>
+            
+            <!-- Search and Filter Controls -->
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <input type="text" id="filterName" placeholder="Search by Name..." class="flex-grow p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                <select id="filterType" class="p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                    <option value="">Filter by Type</option>
+                    <option value="RM">RM</option>
+                    <option value="MTF">MTF</option>
+                    <option value="OTF">OTF</option>
+                </select>
+                <button id="clearFilters" class="btn bg-gray-700 text-white px-4 py-3 rounded-lg font-bold transition-all hover:bg-gray-600">Clear</button>
+            </div>
+
+            <div class="table-container bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">ID</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Name</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Location</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Type</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Status</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="venueTableBody" class="divide-y divide-gray-700">
+                        <!-- Venue data will be rendered here -->
+                    </tbody>
                 </table>
             </div>
         </div>
         
         <!-- Instruments Page -->
-        <div id="instruments-content" class="page-content">
-             <div class="header">
-                <h2>Manage Instruments</h2>
-                <button class="btn" id="addInstrumentBtn">Add New Instrument</button>
+        <div id="instruments-content" class="page-content hidden">
+             <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Manage Instruments</h2>
+                <button class="btn bg-red-600 text-white px-6 py-3 rounded-lg font-bold transition-all hover:bg-red-700 hover:scale-105" id="addInstrumentBtn">Add New Instrument</button>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>ID</th><th>Symbol</th><th>Name</th><th>Venue</th><th>Description</th><th>Actions</th></tr></thead>
-                    <tbody id="instrumentTableBody"></tbody>
+            <div class="table-container bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">ID</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Symbol</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Name</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Venue</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Type</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="instrumentTableBody" class="divide-y divide-gray-700">
+                        <!-- Instrument data will be rendered here -->
+                    </tbody>
                 </table>
             </div>
         </div>
-
-        <!-- Participants Page (Static Mockup) -->
-        <div id="participants-content" class="page-content">
-            <div class="header">
-                <h2>Manage Participants</h2>
-                <button class="btn" disabled>Add New Participant</button>
+        
+        <!-- Participants Page -->
+        <div id="participants-content" class="page-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Manage Participants</h2>
+                <button class="btn bg-red-600 text-white px-6 py-3 rounded-lg font-bold transition-all hover:bg-red-700 hover:scale-105" disabled>Add New Participant</button>
             </div>
-            <div class="notice-box">
-                <strong>Future Enhancement:</strong> This section demonstrates the next logical step: managing the firms that trade on the venues.
+            <div class="bg-gray-800 text-white p-6 rounded-lg mb-6 border-l-4 border-red-600 shadow-md">
+                <strong class="font-bold">Future Enhancement:</strong> This section demonstrates the next logical step: managing the firms that trade on the venues.
             </div>
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>Participant ID</th><th>Firm Name</th><th>Status</th><th>Actions</th></tr></thead>
-                    <tbody>
-                        <tr><td>P5821</td><td>Quantum Hedge Fund</td><td><span class="status open">ACTIVE</span></td><td><button class="action-btn" disabled>View Traders</button></td></tr>
-                        <tr><td>P9473</td><td>Alpha Trading Group</td><td><span class="status halted">SUSPENDED</span></td><td><button class="action-btn" disabled>View Traders</button></td></tr>
+            <div class="table-container bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Participant ID</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Firm Name</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Status</th>
+                            <th class="px-6 py-4 bg-gray-700 text-left text-sm font-semibold text-gray-400">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">P5821</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Quantum Hedge Fund</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full status-open">ACTIVE</span></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors" disabled>View Traders</button></td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">P9473</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">Alpha Trading Group</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full status-closed">INACTIVE</span></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors" disabled>View Traders</button></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -264,86 +178,84 @@
     </main>
     
     <!-- Add/Edit Venue Modal -->
-    <div id="venueModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="venueModalTitle">Add New Venue</h3>
-                <span class="close-btn">&times;</span>
+    <div id="venueModal" class="modal hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-xl max-w-lg border-t-4 border-red-600 shadow-lg">
+            <div class="modal-header flex justify-between items-center mb-6">
+                <h3 id="venueModalTitle" class="text-2xl font-bold">Add New Venue</h3>
+                <span class="close-btn text-3xl font-light cursor-pointer text-white hover:text-red-600">&times;</span>
             </div>
-            <form id="venueForm">
+            <form id="venueForm" class="flex flex-col gap-4">
                 <input type="hidden" id="venueId">
                 <div class="form-group">
-                    <label for="venueName">Venue Name</label>
-                    <input type="text" id="venueName" required>
+                    <label for="venueName" class="block mb-2 font-bold text-gray-300">Venue Name</label>
+                    <input type="text" id="venueName" required class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
                 </div>
                 <div class="form-group">
-                    <label for="venueLocation">Location</label>
-                    <input type="text" id="venueLocation" required>
+                    <label for="venueLocation" class="block mb-2 font-bold text-gray-300">Location</label>
+                    <input type="text" id="venueLocation" required class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
                 </div>
                 <div class="form-group">
-                    <label for="venueType">Type</label>
-                    <input type="text" id="venueType" required>
-                </div>
-                <div class="form-group">
-                    <label for="venueStatus">Initial Status</label>
-                    <select id="venueStatus">
-                        <option value="PENDING_APPROVAL">Pending Approval</option>
-                        <option value="OPEN">Open</option>
-                        <option value="CLOSED">Closed</option>
-                        <option value="HALTED">Halted</option>
-                        <option value="DECOMMISSIONED">Decommissioned</option>
+                    <label for="venueType" class="block mb-2 font-bold text-gray-300">Type</label>
+                    <select id="venueType" required class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                        <option value="RM">RM (Regulated Market)</option>
+                        <option value="MTF">MTF (Multilateral Trading Facility)</option>
+                        <option value="OTF">OTF (Organized Trading Facility)</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">Save Venue</button>
+                <button type="submit" class="btn bg-red-600 text-white px-6 py-3 rounded-lg font-bold transition-all hover:bg-red-700 hover:scale-105">Save Venue</button>
             </form>
         </div>
     </div>
 
     <!-- Add/Edit Instrument Modal -->
-    <div id="instrumentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="instrumentModalTitle">Add New Instrument</h3>
-                <span class="close-btn">&times;</span>
+    <div id="instrumentModal" class="modal hidden">
+        <div class="modal-content bg-gray-800 p-8 rounded-xl max-w-lg border-t-4 border-red-600 shadow-lg">
+            <div class="modal-header flex justify-between items-center mb-6">
+                <h3 id="instrumentModalTitle" class="text-2xl font-bold">Add New Instrument</h3>
+                <span class="close-btn text-3xl font-light cursor-pointer text-white hover:text-red-600">&times;</span>
             </div>
-            <form id="instrumentForm">
+            <form id="instrumentForm" class="flex flex-col gap-4">
                 <input type="hidden" id="instrumentId">
                 <div class="form-group">
-                    <label for="instrumentSymbol">Symbol</label>
-                    <input type="text" id="instrumentSymbol" required placeholder="e.g., AAPL, BTC/USD">
+                    <label for="instrumentSymbol" class="block mb-2 font-bold text-gray-300">Symbol</label>
+                    <input type="text" id="instrumentSymbol" required placeholder="e.g., AAPL" class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
                 </div>
                  <div class="form-group">
-                    <label for="instrumentName">Name</label>
-                    <input type="text" id="instrumentName" required placeholder="e.g., Apple Inc., Bitcoin/US Dollar">
+                    <label for="instrumentName" class="block mb-2 font-bold text-gray-300">Name</label>
+                    <input type="text" id="instrumentName" required placeholder="e.g., Apple Inc." class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
                 </div>
                 <div class="form-group">
-                    <label for="instrumentVenue">Venue</label>
-                    <select id="instrumentVenue" required></select>
+                    <label for="instrumentType" class="block mb-2 font-bold text-gray-300">Type</label>
+                    <select id="instrumentType" required class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                        <option value="STOCK">STOCK</option>
+                        <option value="BOND">BOND</option>
+                        <option value="DERIVATIVE">DERIVATIVE</option>
+                        <option value="FX">FX</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                     <label for="instrumentDescription">Description</label>
-                     <textarea id="instrumentDescription" rows="3" placeholder="A short description of the instrument..."></textarea>
+                    <label for="instrumentVenue" class="block mb-2 font-bold text-gray-300">Venue</label>
+                    <select id="instrumentVenue" required class="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-red-600"></select>
                 </div>
-                <button type="submit" class="btn">Save Instrument</button>
+                <button type="submit" class="btn bg-red-600 text-white px-6 py-3 rounded-lg font-bold transition-all hover:bg-red-700 hover:scale-105">Save Instrument</button>
             </form>
         </div>
     </div>
     
     <script>
         // --- DUMMY DATA ---
-        const dummyVenues = [
-            { id: 101, name: 'Coinbase Exchange', location: 'New York', type: 'CRYPTO', status: 'OPEN' },
-            { id: 245, name: 'LMAX Group', location: 'London', type: 'FX', status: 'CLOSED' },
-            { id: 389, name: 'CME Group', location: 'Chicago', type: 'FUTURES', status: 'HALTED' },
-            { id: 412, name: 'Singapore Exchange (SGX)', location: 'Singapore', type: 'EQUITY', status: 'PENDING_APPROVAL' },
-            { id: 533, name: 'London Metal Exchange', location: 'London', type: 'COMMODITY', status: 'DECOMMISSIONED' },
+        let dummyVenues = [
+            { id: 101, name: 'London Stock Exchange (LSE)', location: 'London', type: 'RM', status: 'OPEN' },
+            { id: 245, name: 'New York Stock Exchange (NYSE)', location: 'New York', type: 'RM', status: 'CLOSED' },
+            { id: 389, name: 'CBOE Europe', location: 'London', type: 'MTF', status: 'OPEN' },
+            { id: 412, name: 'BATS Europe', location: 'London', type: 'MTF', status: 'OPEN' },
         ];
-
-        const dummyInstruments = [
-            { id: 1, symbol: 'BTC/USD', name: 'Bitcoin / US Dollar', venueId: 101, description: 'The leading cryptocurrency pair.' },
-            { id: 2, symbol: 'EUR/GBP', name: 'Euro / British Pound', venueId: 245, description: 'A major currency pair.' },
-            { id: 3, symbol: 'AAPL', name: 'Apple Inc.', venueId: 412, description: 'Common stock of Apple Inc.' },
-            { id: 4, symbol: 'ESZ25', name: 'E-Mini S&P 500 Futures', venueId: 389, description: 'A stock market index futures contract.'}
+        
+        let dummyInstruments = [
+            { id: 1, symbol: 'UBSN', name: 'UBS Group AG', venueId: 101, type: 'STOCK' },
+            { id: 2, symbol: 'AAPL', name: 'Apple Inc.', venueId: 245, type: 'STOCK' },
+            { id: 3, symbol: 'TSLA', name: 'Tesla Inc.', venueId: 245, type: 'STOCK' },
+            { id: 4, symbol: 'USD/CHF', name: 'US Dollar / Swiss Franc', venueId: 389, type: 'FX' },
         ];
 
         // --- PAGE NAVIGATION ---
@@ -353,41 +265,77 @@
             const page = link.dataset.page;
             if (!page) return;
 
-            document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
-            link.classList.add('active');
+            document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active', 'bg-red-600'));
+            link.classList.add('active', 'bg-red-600');
 
-            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-            document.getElementById(`${page}-content`).classList.add('active');
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`${page}-content`).classList.remove('hidden');
         });
 
         // --- UTILITY FUNCTIONS ---
         function formatStatusText(status) {
-            return status.replace(/_/g, ' ').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+            return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
         }
 
         // --- VENUE LOGIC ---
         const venueModal = document.getElementById('venueModal');
-
+        const filterNameInput = document.getElementById('filterName');
+        const filterTypeSelect = document.getElementById('filterType');
+        
         function renderVenueTable() {
             const tableBody = document.getElementById('venueTableBody');
             if (!tableBody) return;
             tableBody.innerHTML = '';
-            dummyVenues.forEach(venue => {
+            
+            const filterName = filterNameInput.value.toLowerCase();
+            const filterType = filterTypeSelect.value;
+
+            const filteredVenues = dummyVenues.filter(venue => {
+                const matchesName = venue.name.toLowerCase().includes(filterName);
+                const matchesType = !filterType || venue.type === filterType;
+                return matchesName && matchesType;
+            });
+            
+            filteredVenues.forEach(venue => {
                 const row = document.createElement('tr');
-                const statusClass = venue.status.toLowerCase().replace(/_/g, '-');
+                const statusClass = venue.status.toLowerCase();
+                const statusText = formatStatusText(venue.status);
+                
                 row.innerHTML = `
-                    <td>${venue.id}</td>
-                    <td>${venue.name}</td>
-                    <td>${venue.location}</td>
-                    <td>${venue.type}</td>
-                    <td><span class="status ${statusClass}">${formatStatusText(venue.status)}</span></td>
-                    <td>
-                        <button class="action-btn" onclick="editVenue(${venue.id})">Edit</button>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">${venue.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${venue.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${venue.location}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${venue.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full status-${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="toggleVenueStatus(${venue.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 12.5h-5M18 10h-2M6 10H4M2 10a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8zM12 2a2 2 0 0 1 2 2h-4a2 2 0 0 1 2-2z"/></svg>
+                        </button>
+                        <button onclick="editVenue(${venue.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
                     </td>`;
                 tableBody.appendChild(row);
             });
         }
         
+        function toggleVenueStatus(id) {
+            const venueIndex = dummyVenues.findIndex(v => v.id === id);
+            if (venueIndex !== -1) {
+                const currentStatus = dummyVenues[venueIndex].status;
+                const newStatus = currentStatus === 'OPEN' ? 'CLOSED' : 'OPEN';
+                
+                // Simulate API call to update status
+                console.log(`Simulating API call: PUT /api/venues/${id}/status?status=${newStatus}`);
+                dummyVenues[venueIndex].status = newStatus;
+                renderVenueTable();
+            }
+        }
+
         function editVenue(id) {
             const venue = dummyVenues.find(v => v.id === id);
             if (venue) {
@@ -397,7 +345,6 @@
                 document.getElementById('venueName').value = venue.name;
                 document.getElementById('venueLocation').value = venue.location;
                 document.getElementById('venueType').value = venue.type;
-                document.getElementById('venueStatus').value = venue.status;
                 venueModal.style.display = 'flex';
             }
         }
@@ -406,7 +353,6 @@
             document.getElementById('venueModalTitle').textContent = 'Add New Venue';
             document.getElementById('venueForm').reset();
             document.getElementById('venueId').value = '';
-            document.getElementById('venueStatus').value = 'PENDING_APPROVAL';
             venueModal.style.display = 'flex';
         };
 
@@ -416,28 +362,35 @@
             const data = {
                 name: document.getElementById('venueName').value,
                 location: document.getElementById('venueLocation').value,
-                type: document.getElementById('venueType').value,
-                status: document.getElementById('venueStatus').value
+                type: document.getElementById('venueType').value
             };
-
+            
             if (id) {
                 const index = dummyVenues.findIndex(v => v.id == id);
                 dummyVenues[index] = { ...dummyVenues[index], ...data };
                 console.log(`Simulating API call: PUT /api/venues/${id}`, data);
             } else {
                 const newId = Math.floor(Math.random() * 1000) + 600;
-                dummyVenues.push({ id: newId, ...data });
-                console.log(`Simulating API call: POST /api/venues`, {id: newId, ...data});
+                dummyVenues.push({ id: newId, status: 'OPEN', ...data });
+                console.log(`Simulating API call: POST /api/venues`, {id: newId, status: 'OPEN', ...data});
             }
             venueModal.style.display = 'none';
             renderVenueTable();
-            // Re-render instruments in case a venue name changed
             renderInstrumentTable();
         };
 
+        filterNameInput.addEventListener('input', renderVenueTable);
+        filterTypeSelect.addEventListener('change', renderVenueTable);
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            filterNameInput.value = '';
+            filterTypeSelect.value = '';
+            renderVenueTable();
+        });
+
+
         // --- INSTRUMENT LOGIC ---
         const instrumentModal = document.getElementById('instrumentModal');
-
+        
         function renderInstrumentTable() {
             const tableBody = document.getElementById('instrumentTableBody');
             if(!tableBody) return;
@@ -446,13 +399,15 @@
                 const venue = dummyVenues.find(v => v.id === inst.venueId);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${inst.id}</td>
-                    <td>${inst.symbol}</td>
-                    <td>${inst.name}</td>
-                    <td>${venue ? venue.name : 'N/A'}</td>
-                    <td class="description-cell" title="${inst.description}">${inst.description}</td>
-                    <td>
-                        <button class="action-btn" onclick="editInstrument(${inst.id})">Edit</button>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">${inst.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${inst.symbol}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${inst.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${venue ? venue.name : 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${inst.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="editInstrument(${inst.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
                     </td>`;
                 tableBody.appendChild(row);
             });
@@ -475,8 +430,8 @@
                 document.getElementById('instrumentId').value = inst.id;
                 document.getElementById('instrumentSymbol').value = inst.symbol;
                 document.getElementById('instrumentName').value = inst.name;
+                document.getElementById('instrumentType').value = inst.type;
                 document.getElementById('instrumentVenue').value = inst.venueId;
-                document.getElementById('instrumentDescription').value = inst.description || '';
                 instrumentModal.style.display = 'flex';
             }
         }
@@ -495,8 +450,8 @@
             const data = {
                 symbol: document.getElementById('instrumentSymbol').value,
                 name: document.getElementById('instrumentName').value,
+                type: document.getElementById('instrumentType').value,
                 venueId: parseInt(document.getElementById('instrumentVenue').value),
-                description: document.getElementById('instrumentDescription').value,
             };
 
             if (id) {
@@ -530,7 +485,5 @@
             renderInstrumentTable();
         });
     </script>
-
 </body>
 </html>
-
