@@ -117,7 +117,7 @@ mvn spring-boot:run
 ```
 
 2. **Access the API:**  
-[http://localhost:8080/api](http://localhost:8080/api)
+[http://localhost:8080](http://localhost:8080)
 
 
 3. **API Documentation (Swagger):**  
