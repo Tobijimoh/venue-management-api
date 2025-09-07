@@ -1,13 +1,10 @@
-package com.tobi.venuemgmt.service;
-
-import com.tobi.venuemgmt.model.Instrument;
-import com.tobi.venuemgmt.model.InstrumentType;
-import com.tobi.venuemgmt.model.Venue;
-import com.tobi.venuemgmt.model.VenueStatus;
+package com.tobi.venuemgmt.instrument;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.tobi.venuemgmt.repository.InstrumentRepository;
+
+import com.tobi.venuemgmt.venue.Venue;
+import com.tobi.venuemgmt.venue.VenueStatus;
 import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
 import com.tobi.venuemgmt.exception.VenueClosedException;
