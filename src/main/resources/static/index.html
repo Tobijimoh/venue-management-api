@@ -243,33 +243,140 @@
     </div>
     
     <script>
-        // --- DUMMY DATA ---
-        let dummyVenues = [
-            { id: 101, name: 'London Stock Exchange (LSE)', location: 'London', type: 'RM', status: 'OPEN' },
-            { id: 245, name: 'New York Stock Exchange (NYSE)', location: 'New York', type: 'RM', status: 'CLOSED' },
-            { id: 389, name: 'CBOE Europe', location: 'London', type: 'MTF', status: 'OPEN' },
-            { id: 412, name: 'BATS Europe', location: 'London', type: 'MTF', status: 'OPEN' },
-        ];
-        
-        let dummyInstruments = [
-            { id: 1, symbol: 'UBSN', name: 'UBS Group AG', venueId: 101, type: 'STOCK' },
-            { id: 2, symbol: 'AAPL', name: 'Apple Inc.', venueId: 245, type: 'STOCK' },
-            { id: 3, symbol: 'TSLA', name: 'Tesla Inc.', venueId: 245, type: 'STOCK' },
-            { id: 4, symbol: 'USD/CHF', name: 'US Dollar / Swiss Franc', venueId: 389, type: 'FX' },
-        ];
+        // --- API & DATA FUNCTIONS ---
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`/api/${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Could not fetch data from ${endpoint}:`, error);
+                return [];
+            }
+        }
+
+        async function postData(endpoint, data) {
+            try {
+                const response = await fetch(`/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Could not post data to ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        async function putData(endpoint, id, data) {
+            try {
+                const response = await fetch(`/api/${endpoint}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Could not update data at ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        async function deleteData(endpoint, id) {
+            try {
+                const response = await fetch(`/api/${endpoint}/${id}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                // No content for a successful delete
+                return null;
+            } catch (error) {
+                console.error(`Could not delete data from ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`/api/venues/${id}/status?status=${status}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                 if (!response.ok) {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Could not update status:`, error);
+                return null;
+            }
+        }
+
+        async function refreshVenues() {
+            const endpoint = 'venues';
+            const filterName = document.getElementById('filterName').value;
+            const filterType = document.getElementById('filterType').value;
+            let url = `/api/${endpoint}`;
+
+            if (filterName) {
+                url += `?name=${encodeURIComponent(filterName)}`;
+            } else if (filterType) {
+                 url += `?type=${encodeURIComponent(filterType)}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const venues = await response.json();
+                renderVenueTable(venues);
+            } catch (error) {
+                console.error('Error fetching venues:', error);
+                renderVenueTable([]); // Render empty table on error
+            }
+        }
+
+        async function refreshInstruments() {
+            const instruments = await fetchData('instruments');
+            renderInstrumentTable(instruments);
+        }
 
         // --- PAGE NAVIGATION ---
-        document.querySelector('.sidebar nav').addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (!link) return;
-            const page = link.dataset.page;
-            if (!page) return;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const page = link.dataset.page;
+                document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active', 'bg-red-600'));
+                link.classList.add('active', 'bg-red-600');
 
-            document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active', 'bg-red-600'));
-            link.classList.add('active', 'bg-red-600');
+                document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+                document.getElementById(`${page}-content`).classList.remove('hidden');
 
-            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`${page}-content`).classList.remove('hidden');
+                if (page === 'venues') {
+                    refreshVenues();
+                } else if (page === 'instruments') {
+                    refreshInstruments();
+                }
+            });
         });
 
         // --- UTILITY FUNCTIONS ---
@@ -281,26 +388,17 @@
         const venueModal = document.getElementById('venueModal');
         const filterNameInput = document.getElementById('filterName');
         const filterTypeSelect = document.getElementById('filterType');
-        
-        function renderVenueTable() {
+
+        async function renderVenueTable(venues) {
             const tableBody = document.getElementById('venueTableBody');
             if (!tableBody) return;
             tableBody.innerHTML = '';
             
-            const filterName = filterNameInput.value.toLowerCase();
-            const filterType = filterTypeSelect.value;
-
-            const filteredVenues = dummyVenues.filter(venue => {
-                const matchesName = venue.name.toLowerCase().includes(filterName);
-                const matchesType = !filterType || venue.type === filterType;
-                return matchesName && matchesType;
-            });
-            
-            filteredVenues.forEach(venue => {
+            venues.forEach(venue => {
                 const row = document.createElement('tr');
                 const statusClass = venue.status.toLowerCase();
                 const statusText = formatStatusText(venue.status);
-                
+
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">${venue.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${venue.name}</td>
@@ -312,32 +410,28 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="toggleVenueStatus(${venue.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 12.5h-5M18 10h-2M6 10H4M2 10a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8zM12 2a2 2 0 0 1 2 2h-4a2 2 0 0 1 2-2z"/></svg>
+                        <button onclick="toggleVenueStatus(${venue.id}, '${venue.status}')" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 12.5h-5M18 10h-2M6 10H4M2 10a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8zM12 2a2 2 0 0 1 2 2h-4a2 2 0 0 1 2-2z"/></svg>
                         </button>
                         <button onclick="editVenue(${venue.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button onclick="deleteVenue(${venue.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                         </button>
                     </td>`;
                 tableBody.appendChild(row);
             });
         }
-        
-        function toggleVenueStatus(id) {
-            const venueIndex = dummyVenues.findIndex(v => v.id === id);
-            if (venueIndex !== -1) {
-                const currentStatus = dummyVenues[venueIndex].status;
-                const newStatus = currentStatus === 'OPEN' ? 'CLOSED' : 'OPEN';
-                
-                // Simulate API call to update status
-                console.log(`Simulating API call: PUT /api/venues/${id}/status?status=${newStatus}`);
-                dummyVenues[venueIndex].status = newStatus;
-                renderVenueTable();
-            }
+
+        async function toggleVenueStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'OPEN' ? 'CLOSED' : 'OPEN';
+            await updateStatus(id, newStatus);
+            await refreshVenues();
         }
 
-        function editVenue(id) {
-            const venue = dummyVenues.find(v => v.id === id);
+        async function editVenue(id) {
+            const venue = await fetchData(`venues/${id}`);
             if (venue) {
                 document.getElementById('venueModalTitle').textContent = 'Edit Venue';
                 document.getElementById('venueForm').reset();
@@ -348,7 +442,15 @@
                 venueModal.style.display = 'flex';
             }
         }
-        
+
+        async function deleteVenue(id) {
+             const confirmed = confirm('Are you sure you want to delete this venue?');
+             if (confirmed) {
+                await deleteData('venues', id);
+                await refreshVenues();
+             }
+        }
+
         document.getElementById('addVenueBtn').onclick = () => {
             document.getElementById('venueModalTitle').textContent = 'Add New Venue';
             document.getElementById('venueForm').reset();
@@ -356,7 +458,7 @@
             venueModal.style.display = 'flex';
         };
 
-        document.getElementById('venueForm').onsubmit = (e) => {
+        document.getElementById('venueForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('venueId').value;
             const data = {
@@ -364,39 +466,37 @@
                 location: document.getElementById('venueLocation').value,
                 type: document.getElementById('venueType').value
             };
-            
+
             if (id) {
-                const index = dummyVenues.findIndex(v => v.id == id);
-                dummyVenues[index] = { ...dummyVenues[index], ...data };
-                console.log(`Simulating API call: PUT /api/venues/${id}`, data);
+                await putData('venues', id, data);
             } else {
-                const newId = Math.floor(Math.random() * 1000) + 600;
-                dummyVenues.push({ id: newId, status: 'OPEN', ...data });
-                console.log(`Simulating API call: POST /api/venues`, {id: newId, status: 'OPEN', ...data});
+                await postData('venues', data);
             }
             venueModal.style.display = 'none';
-            renderVenueTable();
-            renderInstrumentTable();
+            await refreshVenues();
+            await refreshInstruments();
         };
 
-        filterNameInput.addEventListener('input', renderVenueTable);
-        filterTypeSelect.addEventListener('change', renderVenueTable);
+        filterNameInput.addEventListener('input', refreshVenues);
+        filterTypeSelect.addEventListener('change', refreshVenues);
         document.getElementById('clearFilters').addEventListener('click', () => {
             filterNameInput.value = '';
             filterTypeSelect.value = '';
-            renderVenueTable();
+            refreshVenues();
         });
 
 
         // --- INSTRUMENT LOGIC ---
         const instrumentModal = document.getElementById('instrumentModal');
-        
-        function renderInstrumentTable() {
+
+        async function renderInstrumentTable(instruments) {
             const tableBody = document.getElementById('instrumentTableBody');
-            if(!tableBody) return;
+            if (!tableBody) return;
             tableBody.innerHTML = '';
-            dummyInstruments.forEach(inst => {
-                const venue = dummyVenues.find(v => v.id === inst.venueId);
+            const venues = await fetchData('venues');
+
+            instruments.forEach(inst => {
+                const venue = venues.find(v => v.id === inst.venue.id);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">${inst.id}</td>
@@ -408,63 +508,72 @@
                         <button onclick="editInstrument(${inst.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
+                        <button onclick="deleteInstrument(${inst.id})" class="text-white bg-gray-700 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                        </button>
                     </td>`;
                 tableBody.appendChild(row);
             });
         }
 
-        function populateVenueDropdown() {
+        async function populateVenueDropdown() {
             const select = document.getElementById('instrumentVenue');
             select.innerHTML = '<option value="">Select a Venue</option>';
-            dummyVenues.forEach(v => {
+            const venues = await fetchData('venues');
+            venues.forEach(v => {
                 select.innerHTML += `<option value="${v.id}">${v.name}</option>`;
             });
         }
-        
-        function editInstrument(id) {
-            const inst = dummyInstruments.find(i => i.id === id);
-            if(inst) {
-                document.getElementById('instrumentModalTitle').textContent = 'Edit Instrument';
-                document.getElementById('instrumentForm').reset();
-                populateVenueDropdown();
-                document.getElementById('instrumentId').value = inst.id;
-                document.getElementById('instrumentSymbol').value = inst.symbol;
-                document.getElementById('instrumentName').value = inst.name;
-                document.getElementById('instrumentType').value = inst.type;
-                document.getElementById('instrumentVenue').value = inst.venueId;
-                instrumentModal.style.display = 'flex';
-            }
-        }
-        
-        document.getElementById('addInstrumentBtn').onclick = () => {
+
+        document.getElementById('addInstrumentBtn').onclick = async () => {
             document.getElementById('instrumentModalTitle').textContent = 'Add New Instrument';
             document.getElementById('instrumentForm').reset();
-            populateVenueDropdown();
+            await populateVenueDropdown();
             document.getElementById('instrumentId').value = '';
             instrumentModal.style.display = 'flex';
         };
 
-        document.getElementById('instrumentForm').onsubmit = (e) => {
+        async function editInstrument(id) {
+            const inst = await fetchData(`instruments/${id}`);
+            if (inst) {
+                document.getElementById('instrumentModalTitle').textContent = 'Edit Instrument';
+                document.getElementById('instrumentForm').reset();
+                await populateVenueDropdown();
+                document.getElementById('instrumentId').value = inst.id;
+                document.getElementById('instrumentSymbol').value = inst.symbol;
+                document.getElementById('instrumentName').value = inst.name;
+                document.getElementById('instrumentType').value = inst.type;
+                document.getElementById('instrumentVenue').value = inst.venue.id;
+                instrumentModal.style.display = 'flex';
+            }
+        }
+
+        async function deleteInstrument(id) {
+            const confirmed = confirm('Are you sure you want to delete this instrument?');
+            if (confirmed) {
+                await deleteData('instruments', id);
+                await refreshInstruments();
+            }
+        }
+
+        document.getElementById('instrumentForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('instrumentId').value;
             const data = {
                 symbol: document.getElementById('instrumentSymbol').value,
                 name: document.getElementById('instrumentName').value,
                 type: document.getElementById('instrumentType').value,
-                venueId: parseInt(document.getElementById('instrumentVenue').value),
+                venue: { id: parseInt(document.getElementById('instrumentVenue').value) },
             };
 
             if (id) {
-                const index = dummyInstruments.findIndex(i => i.id == id);
-                dummyInstruments[index] = { ...dummyInstruments[index], ...data };
-                console.log(`Simulating API call: PUT /api/instruments/${id}`, data);
+                await putData('instruments', id, data);
             } else {
-                const newId = Math.floor(Math.random() * 100) + 10;
-                dummyInstruments.push({ id: newId, ...data });
-                 console.log(`Simulating API call: POST /api/instruments`, {id: newId, ...data});
+                await postData('instruments', data);
             }
             instrumentModal.style.display = 'none';
-            renderInstrumentTable();
+            await refreshInstruments();
+            await refreshVenues();
         };
 
         // --- GENERIC MODAL CLOSING ---
@@ -473,6 +582,7 @@
                 btn.closest('.modal').style.display = 'none';
             }
         });
+
         window.onclick = (event) => {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';
@@ -481,8 +591,7 @@
 
         // --- INITIAL RENDER ---
         document.addEventListener('DOMContentLoaded', () => {
-            renderVenueTable();
-            renderInstrumentTable();
+            refreshVenues();
         });
     </script>
 </body>
