@@ -1,4 +1,4 @@
-package com.tobi.venuemgmt.model;
+package com.tobi.venuemgmt.venue;
 
 /**
  * Represents the lifecycle and operational status of a trading venue.
