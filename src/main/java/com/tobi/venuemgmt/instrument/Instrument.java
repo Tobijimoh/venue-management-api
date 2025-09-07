@@ -2,7 +2,7 @@ package com.tobi.venuemgmt.instrument;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.tobi.venuemgmt.model.BaseEntity;
+import com.tobi.venuemgmt.common.BaseEntity;
 import com.tobi.venuemgmt.venue.Venue;
 
 import jakarta.persistence.Entity;

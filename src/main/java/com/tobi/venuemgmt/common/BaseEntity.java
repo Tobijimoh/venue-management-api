@@ -1,4 +1,4 @@
-package com.tobi.venuemgmt.model;
+package com.tobi.venuemgmt.common;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
