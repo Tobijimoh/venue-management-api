@@ -1,6 +1,7 @@
-package com.tobi.venuemgmt.model;
+package com.tobi.venuemgmt.venue;
 
-import com.tobi.venuemgmt.model.VenueType;
+import com.tobi.venuemgmt.model.BaseEntity;
+import com.tobi.venuemgmt.model.Instrument;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Entity;

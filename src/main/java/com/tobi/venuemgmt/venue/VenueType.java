@@ -1,4 +1,4 @@
-package com.tobi.venuemgmt.model;
+package com.tobi.venuemgmt.venue;
 
 public enum VenueType {
     RM, // Regulated Market

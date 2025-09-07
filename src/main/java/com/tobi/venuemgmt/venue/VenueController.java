@@ -1,9 +1,5 @@
-package com.tobi.venuemgmt.controller;
+package com.tobi.venuemgmt.venue;
 
-import com.tobi.venuemgmt.model.Venue;
-import com.tobi.venuemgmt.model.VenueStatus;
-import com.tobi.venuemgmt.model.VenueType;
-import com.tobi.venuemgmt.service.VenueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

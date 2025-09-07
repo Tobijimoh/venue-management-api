@@ -2,11 +2,11 @@ package com.tobi.venuemgmt;
 
 import com.tobi.venuemgmt.exception.ResourceAlreadyExistsException;
 import com.tobi.venuemgmt.exception.ResourceNotFoundException;
-import com.tobi.venuemgmt.model.Venue;
-import com.tobi.venuemgmt.model.VenueStatus;
-import com.tobi.venuemgmt.model.VenueType;
-import com.tobi.venuemgmt.repository.VenueRepository;
-import com.tobi.venuemgmt.service.VenueService;
+import com.tobi.venuemgmt.venue.Venue;
+import com.tobi.venuemgmt.venue.VenueRepository;
+import com.tobi.venuemgmt.venue.VenueService;
+import com.tobi.venuemgmt.venue.VenueStatus;
+import com.tobi.venuemgmt.venue.VenueType;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
