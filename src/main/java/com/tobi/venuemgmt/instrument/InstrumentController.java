@@ -1,7 +1,5 @@
-package com.tobi.venuemgmt.controller;
+package com.tobi.venuemgmt.instrument;
 
-import com.tobi.venuemgmt.model.Instrument;
-import com.tobi.venuemgmt.service.InstrumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

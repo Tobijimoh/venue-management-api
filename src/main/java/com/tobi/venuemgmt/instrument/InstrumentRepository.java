@@ -1,7 +1,4 @@
-package com.tobi.venuemgmt.repository;
-
-import com.tobi.venuemgmt.model.Instrument;
-import com.tobi.venuemgmt.model.InstrumentType;
+package com.tobi.venuemgmt.instrument;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
